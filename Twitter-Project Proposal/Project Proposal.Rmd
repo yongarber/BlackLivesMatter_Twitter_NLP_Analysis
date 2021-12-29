@@ -1,0 +1,92 @@
+---
+title: "Project Proposal"
+author: "Peter Matarrese, Kathryn Cronquist, Caitlin Moroney, and Yon Garber"
+date: "7/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## App & Group
+App name- #BLM Sentiment Analysis for Policy Makers  
+Our group members are Peter Matarrese, Kathryn Cronquist, Caitlin Moroney, and Yon Garber.
+
+
+## Description
+Youth of color played an active role in debates that erupted on Twitter following the tragic deaths of Michael Brown and Eric Garner in 2014. These debates on social media represent a larger struggle over discourse on race and racism across the nation. Drawing from critical theory and race theory, and engaging in the relatively new practice of using Twitter as a source of data for sociological analysis, this article examines Twitter as an emerging public sphere and studies the hashtags “#AllLivesMatter” and “#BlackLivesMatter” as contested signs that represent dominant ideologies (Carney,2016). The movement returned to the headlines in 2020 following the murder of George Floyd making the BLM movement one of the largest movements in the US history (Buchanan, 2020). Policy makers and researchers found great interest in the movement and its effect on communities. Jelani (2017), Sharma (2013), and Corwin (2016) are all researchers who monitored the movement through Twitter.
+
+In our Shiny app we would like to offer a tool for those researchers and policy makers to help them analyze the progress of the BLM movement and police violence by providing them useful information. The app will make it easier to extract tweets while using various criteria to filter the results. In addition, the app will provide the sentiment of different locations and hashtags.
+
+
+##### Citations
+Carney, N. (2016). All Lives Matter, but so Does Race: Black Lives Matter and the Evolving Role of Social Media. Humanity & Society,      40(2), 180–199. https://doi.org/10.1177/0160597616643868
+
+Jelani Ince, Fabio Rojas & Clayton A. Davis (2017) The social media response to Black Lives Matter: how Twitter users interact with Black Lives Matter through hashtag use, Ethnic and Racial Studies, 40:11, 1814-1830, DOI: 10.1080/01419870.2017.1334931
+
+Corwin, R. M. (2016). Whose lives matter? An examination of attitudes expressed on Twitter regarding# blacklivesmatter and related        hashtags (Doctoral dissertation, Regent University).
+
+Sharma, S. (2013). Black Twitter? Racial hashtags, networks and contagion. New Formations, 78(78), 46-64.
+
+Buchanan, L., Bui, Q., &amp; Patel, J. (2020, July 03). Black Lives Matter May Be the Largest Movement in U.S. History. Retrieved July 11, 2020, from https://www.nytimes.com/interactive/2020/07/03/us/george-floyd-protests-crowd-size.html
+
+
+## Data Sources
+We will be using two data sources for our analysis-
+
+1. Twitter's data. We will be using Twitter's API to access data of tweets regarding the BLM movement and police violence.
+2. Mapping Police Violence dataset <https://mappingpoliceviolence.org/>. The Mapping the Police Violence dataset pulls from three other databases on police killings: FaltalEncounters.org, the U.S. Police Shootings Database, and KilledbyPolice.net, and contains data from 2013 to present. We plan to use this dataset as a second source of data on police violence outside of Twitter.
+3. SentiNet's data. SenticNet is a dataset that provides common words and attaching them a vectorized sentiment (direction and magnitude). We will use this dataset to attach sentiment to tweets and see the change in anger and violence in various communities.
+4. SlangSD <http://liangwu.me/slangsd/>. SlangSD is a dataset that attaches sentiment to informal language. As we are analyzing data from Twitter, a social media platform where users often use informal or slang language, this dataset provides another source of sentiment analysis that may be more useful.
+5. location dataset.  Our base map will come from rnaturalearthdata.
+
+
+## Shiny App
+
+### Layout
+
+In terms of the user interface design, we may split the screen in half so that toggles and exploratory data analysis happen on one side while the main analysis is featured on the other half of the screen. We may instead incorporate tabs, so that our app has an EDA tab, a mapping tab, and an analysis tab.
+
+### UI side/Input
+
+#### Checkboxes: (hashtags, location)
+
+We intend to include several buttons in our Shiny App which will allow the user to filter our curated dataset of tweets by the use of certain hashtags (select one or more from drop-down menu), tweet locations (select one or more from drop-down menu), etc. The selections made from these buttons will have downstream effects; specifically, the dataset will be filtered based on the input conditions, which will affect any plots and/or modeling. To make the scope of the project manageable, our data set will be focusing on just a few hashtags, so our users will be able to select from two main categories: "#BLM/#BlackLivesMatter" and "#DefundThePolice".  For location selection, again, our curated data set will focus on a few limited locations such as Washington, D.C., New York, Minneapolis/St. Paul, Houston, Atlanta, Louisville, etc.  For any Tweet with location data, we want our user to be able to filter by one or more location.  The use of checkboxes allow for the selection of one or more variables.
+
+#### Sliders: (number of Tweets, datetime range)
+
+Our app will also include one or more sliders, such as a one-button slider which allows the user to select the number of tweets (n=1 to n=nrow(dataframe)). The default will be set to the total number of tweets we have collected; if they are interested in viewing a smaller sample, they can move the button to a different number, which will automatically generate a random sample of the selected number of tweets. We may also add a datetime slider which would allow the user to select a range of datetimes which will be used to filter our dataset of tweets; this feature will only be feasible if our set of tweets spans a large enough timeframe. This user input will play a part in the generation of word clouds/sentiment analysis, as well as in the statistical analysis section.
+
+#### Switches
+
+We may include a switch or toggle button that allows users to choose between "Live" and "Historical", meaning live streaming tweets and using our "historical" preassembled dataset, respectively. This feature may or may not be included; we may only allow the app to access our preassembled dataset, and then the user would not have use for a choice button.
+
+#### Action button (one or more)
+
+Rather than having live refresh (particularly for word cloud), we will have one or more action buttons that will trigger the production of our analytic plots in the output section.
+
+#### Analysis
+
+The analysis section of our Shiny app will allow the user to choose amongst the variables available in our dataset (for example, average sentiment score, number of followers, hashtags, and is_retweet) in order to visualize either one or two variables and then to conduct a statistical analysis (with two or more variables) such as (linear or logistic) regression or ANOVA.
+
+### Server side/Output
+
+#### Exploratory Data Analysis (EDA) plots
+
+We plan to include different plots that allow the user to conduct an exploratory data analysis of the (filtered) dataset of tweets. For example, we may include a top N terms bar plot which can toggle between selecting the top N most frequent words, hashtags, or emojis; the value N may be selected by the user from a drop-down menu with options of 5, 10, or 20. We may also allow the user to conduct topic modeling via LDA by selecting the number of topics and number of top terms desired (a drop-down menu selection or slider bar) which we then use to compute term-topic distribution plots using the tidytext and tm libraries. We might also add a word cloud plot that is auto-generated based on the datetime, hashtag, and/or location selections mentioned above. We might also create a plot of average sentiment score (positive score minus negative score) over time , where the user chooses to aggregate tweets by minute, hour, or day (depending on the time range). Finally, we may select the geo-tagged tweets from our larger sample of tweets in order to create an interactive map which could include layers such as a heat map (for tweet frequency) and/or average tweet sentiment (positive - negative) aggregated by state.
+
+## Allocation of Responsibilities for the team
+While we will all contribute to different aspects of this project, we have decided to assign team leads to each part of our project:  
+Data Collection and Twitter API: Caitlin  
+EDA and NLP: Peter  
+Statistical Analysis: Kathryn  
+Shiny App: Yon
+
+
+## Project Steps/Schedule
+Weekly meeting - Sunday 9AM (EST).  
+Data collection - July 15th - July 18th.  
+Shiny App + Analysis - July 19th - July 25th.  
+Vignette - July 26th - finishing everything by August 1st.  
+Final meeting - Sunday, August 2nd (debugging).

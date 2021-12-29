@@ -1,0 +1,120 @@
+---
+title: "Sentiment Analysis of BLM: Do Hashtags Matter?"
+author: "Peter Matarrese, Kathryn Cronquist, Caitlin Moroney, and Yon Garber"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Use Case
+
+Youth of color played an active role in debates that erupted on Twitter following the tragic deaths of Michael Brown and Eric Garner in 2014. These debates on social media represent a larger struggle over discourse on race and racism across the nation. Drawing from critical theory and race theory, and engaging in the relatively new practice of using Twitter as a source of data for sociological analysis, one particular article examines Twitter as an emerging public sphere and studies the hashtags “#AllLivesMatter” and “#BlackLivesMatter” as contested signs that represent dominant ideologies (Carney,2016). The movement returned to the headlines in 2020 following the murder of George Floyd making the BLM movement one of the largest movements in the US history (Buchanan, 2020). Policy makers and researchers found great interest in the movement and its effect on communities. Jelani (2017), Sharma (2013), and Corwin (2016) are all researchers who monitored the movement through Twitter.
+
+In our Shiny app we would like to offer a tool for those researchers and policy makers to help them analyze the progress of the BLM movement and police violence by providing them useful information. The app will make it easier to analyze tweets while using various criteria to filter the results. In addition, the app will provide the sentiment of different locations and hashtags- #BLM, #BlackLivesMatter, #defundthepolice, and #policebrutality. 
+
+#### EDA
+The EDA tab provides a quick snapshot of our Twitter data. A user can quickly see the popularity of the tweets in the data set and the most common locations of the Twitter users. The last chart allows a user to see the most popular terms, hashtags, user mentions, and emojis associated with the four main hashtags of analysis. 
+
+#### Mapping
+The mapping tab allows the user to explore the spatial distribution of certain variables of interest aggregated at either the U.S. state or country level. We have taken advantage of geo-tagged tweets as well as tweets that contain other location data which we could extract using regex patterns. While only a small fraction of tweets contain location data, we believe that the spatial component of our dataset offers important insights about the geographic distribution of certain trends. For example, the user can examine average sentiment scores at the state or country level using either the SenticNet dictionary or the SlangSD dictionary. Other options include coloring the state or country polygons by total number of tweets or average number of hashtags.
+
+On the bottom half of this tab, we have also displayed a dynamic map of the individual tweets for which we have some form of location data. When we only have information at the state or country level, the tweets have been plotted at the centroid of that polygon.
+
+#### Analysis
+The analysis tab allows a user to interact with the main hashtags of analysis and their sentiment scores using the two different sentiment dictionaries, SenticNet and SlangSD. We wanted the user to be able to answer the question, do hashtags really matter? Does the tone, or sentiment, of a tweet change depending on the related hashtag, even though all four hashtags are related to the Black Lives Matter movement?
+
+## Required Packages
+
+* library(shiny)
+* library(tidyverse)
+* library(leaflet)
+* library(usmap)
+* library(shinythemes)
+* library(plotly)
+* library(tmap)
+* library(spData)
+* library(rstatix)
+* library(broom)
+* library(bootstraplib)
+
+    **Note:** for `bootstraplib`, `tmap`, and `tmaptools` packages, due to a recent bug, you need to install the developer versions from GitHub using:
+    
+`remotes::install_github("mtennekes/tmap")`
+
+`remotes::install_github("mtennekes/tmaptools")`
+
+`remotes::install_github("rstudio/bootstraplib")`
+
+## Data Source and Structure
+
+#### Twitter data
+
+We used Twitter’s API to access data of tweets regarding the BLM movement and police violence. We queried tweets that for four primary hashtags of interest: #BLM, #BlackLivesMatter, #defundthepolice, and #policebrutality.  Our data set ended up being a total of 54,000 tweets, collected between 2020-07-14 16:22:35 UTC and 2020-07-14 22:48:09 UTC.
+
+From the original data pull, we pared down the 90+ metadata variables to an initial 33, and split the data into separate .RDS files for easy ingestion to Shiny as well as avoiding GitHub data transfer and storage issues.  We wrangled the data, creating summary variables such as the number of hashtags used in the tweet text, as well as which of our primary hashtags was used (either one or multiple).
+
+#### SentiNet5 Sentiment Dictionary (https://sentic.net/)
+
+SenticNet5 is a data set that provides 100,000 common words and attaching them a vectorized sentiment (direction and magnitude). We used this data set to attach sentiment to tweets and assigned an average "intensity" score, providing a basic scale for a tweet's content being more positive or negative.  The process involved the removal of stopwords from the `tidytext` package, as well as removing our primary hashtags and hyperlink artifacts after tokenization of the tweets.
+
+#### SlangSD Sentiment Dictionary (http://liangwu.me/slangsd/)
+
+SlangSD is a data set that attaches sentiment to informal language, containing about 78,000 entries. As we are analyzing data from Twitter, a social media platform where users often use informal or slang language, this data set provided another source of sentiment analysis.  We processed the initial cleaned tweets separately for each sentiment dictionary, following the same procedure both times.
+
+#### Location data:
+
+From our cleaned tweets data, we parsed location data in multiple ways.  Some tweets already had lat/lon data connected to them, but they were the vast minority.  However, one of the metadata variables (`Location`) provided strings that users would input for their location.  We could then extract any city, state, or country name, and assign lat/lon coordinates to the tweets.  In total, we were able to parse locations for just over 3,000 tweets.  Our maps were produced with both `tmap` and `leaflet` packages, allowing the user to interact with different variables.
+
+**Note:** Due to the limited nature of our data set, further constrained by the limited parsed location data, the maps are meant to show a rough sketch of the content.  One illustration of our limitation is presented on our EDA tab.  The bar plot shows a much higher count of tweets attributed to California than those in Washington, D.C.  This is **not** to say that more Twitter participation is happening in one place or another.  The time frame from which we pulled our data would heavily favor countries in the western hemisphere, and how we parsed location could have affected how many tweets we assigned to each place.  Example: someone in Washington, D.C. may be used to filling out their "Location" in specific terms (i.e. Dupont Circle or Lincoln Memorial); conversely, someone in California's Bay Area may be more inclined to list their location by city (i.e. Oakland vs San Francisco).  Our method for parsing location doesn't get more specific than city-level, hence the possibility of not catching locations based off of places of interest.
+
+## EDA Inputs, Controls, and Outputs
+
+Our EDA tab is designed to be a top-down snapshot of our whole data set.  We provide the chance for the user to investigate the initial Tweets dataset we gathered. We start by examining the tweets and counting the number of retweets plotting the results as a density function. We have two sliders attached for this plot. One is a range slider to help us group by the number of retweets and observe the number of tweets we have in this group. Example: we might want to focus on a specific group after wards in our research. The second slider is filtering the number of followers each tweet's user has. Example: We might be interested in users that have more than 10,000 followers. 
+
+Afterwards we have two static bar plots. Those are showing the distribution of the tweets based on chosen states and significant countries. 
+
+The bottom part is showing an interactive bar-plot that gives us a better sense of other hashtags, words, user mentions, and Emojis. For example, we see hashtags that we didn't think on researching like #georgesoros or #portlandriots. 
+
+This section is providing us with more directions for research and ideas that we might didn't think of.
+
+## Mapping Inputs, Controls, and Ouputs
+
+The mapping tab showcases geographic trends of our Twitter data. In the top half of the page, the user can tab between U.S. state trends and worldwide country trends illustrated in choropleth maps. The polygons can be colored by the variable of interest to the user; options include total number of tweets, average number of hashtags per tweet, and average sentiment score per tweet using either the SenticNet dictionary or SlangSD dictionary. The user may also choose between three base maps: OpenStreetMap (the default), ESRI World Gray Canvas, or ESRI World Topo Map. The bottom half of the page displays a leaflet map of individual tweets which does not have corresponding user inputs. To interact with this output, the user can zoom in or out and pan over the full-world map to investigate individual tweets; while not all tweets in our dataset could be represented spatially, we took advantage of geotagged tweets as well as other location data in tweet attributes to include as many tweets as possible.
+
+## Statistical Analysis Inputs, Controls, and Outputs
+
+The analysis tab allows a user to explore our Twitter data through statistical summaries in the form of boxplots and a barchart and an analysis of variance table. The radio button selection titled "Allow tweets that include more than one hashtag?", which interacts with all of the output on the analysis page, allows a user to select "Inclusive", meaning a selected hashtag may capture tweets in which one or more of the other three hashtags are used, or "Exclusive", meaning the output of a selected hashtag will be restricted to tweets in which only the selected hashtag is present. The dropdown menu allows the user to select either the SenticNet or the SlangSD sentiment dictionary, again interacting with all analysis output. The user may then select one or more hashtags of interest for the first boxplot. The option, "All blm-related hashtags", indicates tweets that include all four hashtags. 
+
+The second row on the analysis tab includes the results of a multiple pairwise comparison test in a table format. Our preliminary analysis showed that all anova tests, including combinations of "Inclusive" or "Exclusive" and SenticNet or SlangSD, were significant. We then did a follow-up test, using Tukey's honestly significant difference test, to compare the means of all possible pairs. When a user selects "Inclusive", the weighting of the tweets with more than one hashtag changes so as not to give more weight to any particular tweet. These results are displayed in the table. The barplot, reactive to the user's selection of "Inclusive" or "Exclusive", shows the number of tweets by hashtag.
+
+The final row of the analysis tab allows a user to look at different combinations of hashtags and their statistical summaries in the form of a boxplot. A user must first select a primary hashtag to limit the number of boxplots shown and then can select various combinations with other hashtags. 
+
+## Future directions
+
+We can make the tidying as part of the app and provide the user the option to stream data into the app without a static data set. This would allow users to react to and analyze current events as they are happening.
+
+## References
+
+Carney, N. (2016). All Lives Matter, but so Does Race: Black Lives Matter and the Evolving Role of Social Media. Humanity & Society, 40(2), 180–199. https://doi.org/10.1177/0160597616643868
+
+Jelani Ince, Fabio Rojas & Clayton A. Davis (2017) The social media response to Black Lives Matter: how Twitter users interact with Black Lives Matter through hashtag use, Ethnic and Racial Studies, 40:11, 1814-1830, DOI: 10.1080/01419870.2017.1334931
+
+Corwin, R. M. (2016). Whose lives matter? An examination of attitudes expressed on Twitter regarding# blacklivesmatter and related hashtags (Doctoral dissertation, Regent University).
+
+Sharma, S. (2013). Black Twitter? Racial hashtags, networks and contagion. New Formations, 78(78), 46-64.
+
+Buchanan, L., Bui, Q., & Patel, J. (2020, July 03). Black Lives Matter May Be the Largest Movement in U.S. History. Retrieved July 11, 2020, from https://www.nytimes.com/interactive/2020/07/03/us/george-floyd-protests-crowd-size.html
+
+Cambria, Erik, et al. "SenticNet 5: Discovering conceptual primitives for sentiment analysis by means of context embeddings." Thirty-Second AAAI Conference on Artificial Intelligence. 2018.
+
+Wu, Liang, Fred Morstatter, and Huan Liu. "Slangsd: Building and using a sentiment dictionary of slang words for short-text sentiment classification." arXiv preprint arXiv:1608.05129 (2016).

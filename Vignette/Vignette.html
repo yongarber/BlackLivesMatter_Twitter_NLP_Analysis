@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Peter Matarrese, Kathryn Cronquist, Caitlin Moroney, and Yon Garber" />
+
+<meta name="date" content="2020-08-06" />
+
+<title>Sentiment Analysis of BLM: Do Hashtags Matter?</title>
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Sentiment Analysis of BLM: Do Hashtags Matter?</h1>
+<h4 class="author">Peter Matarrese, Kathryn Cronquist, Caitlin Moroney, and Yon Garber</h4>
+<h4 class="date">2020-08-06</h4>
+
+
+
+<div id="use-case" class="section level2">
+<h2>Use Case</h2>
+<p>Youth of color played an active role in debates that erupted on Twitter following the tragic deaths of Michael Brown and Eric Garner in 2014. These debates on social media represent a larger struggle over discourse on race and racism across the nation. Drawing from critical theory and race theory, and engaging in the relatively new practice of using Twitter as a source of data for sociological analysis, one particular article examines Twitter as an emerging public sphere and studies the hashtags “#AllLivesMatter” and “#BlackLivesMatter” as contested signs that represent dominant ideologies (Carney,2016). The movement returned to the headlines in 2020 following the murder of George Floyd making the BLM movement one of the largest movements in the US history (Buchanan, 2020). Policy makers and researchers found great interest in the movement and its effect on communities. Jelani (2017), Sharma (2013), and Corwin (2016) are all researchers who monitored the movement through Twitter.</p>
+<p>In our Shiny app we would like to offer a tool for those researchers and policy makers to help them analyze the progress of the BLM movement and police violence by providing them useful information. The app will make it easier to analyze tweets while using various criteria to filter the results. In addition, the app will provide the sentiment of different locations and hashtags- #BLM, #BlackLivesMatter, #defundthepolice, and #policebrutality.</p>
+<div id="eda" class="section level4">
+<h4>EDA</h4>
+<p>The EDA tab provides a quick snapshot of our Twitter data. A user can quickly see the popularity of the tweets in the data set and the most common locations of the Twitter users. The last chart allows a user to see the most popular terms, hashtags, user mentions, and emojis associated with the four main hashtags of analysis.</p>
+</div>
+<div id="mapping" class="section level4">
+<h4>Mapping</h4>
+<p>The mapping tab allows the user to explore the spatial distribution of certain variables of interest aggregated at either the U.S. state or country level. We have taken advantage of geo-tagged tweets as well as tweets that contain other location data which we could extract using regex patterns. While only a small fraction of tweets contain location data, we believe that the spatial component of our dataset offers important insights about the geographic distribution of certain trends. For example, the user can examine average sentiment scores at the state or country level using either the SenticNet dictionary or the SlangSD dictionary. Other options include coloring the state or country polygons by total number of tweets or average number of hashtags.</p>
+<p>On the bottom half of this tab, we have also displayed a dynamic map of the individual tweets for which we have some form of location data. When we only have information at the state or country level, the tweets have been plotted at the centroid of that polygon.</p>
+</div>
+<div id="analysis" class="section level4">
+<h4>Analysis</h4>
+<p>The analysis tab allows a user to interact with the main hashtags of analysis and their sentiment scores using the two different sentiment dictionaries, SenticNet and SlangSD. We wanted the user to be able to answer the question, do hashtags really matter? Does the tone, or sentiment, of a tweet change depending on the related hashtag, even though all four hashtags are related to the Black Lives Matter movement?</p>
+</div>
+</div>
+<div id="required-packages" class="section level2">
+<h2>Required Packages</h2>
+<ul>
+<li><p>library(shiny)</p></li>
+<li><p>library(tidyverse)</p></li>
+<li><p>library(leaflet)</p></li>
+<li><p>library(usmap)</p></li>
+<li><p>library(shinythemes)</p></li>
+<li><p>library(plotly)</p></li>
+<li><p>library(tmap)</p></li>
+<li><p>library(spData)</p></li>
+<li><p>library(rstatix)</p></li>
+<li><p>library(broom)</p></li>
+<li><p>library(bootstraplib)</p>
+<p><strong>Note:</strong> for <code>bootstraplib</code>, <code>tmap</code>, and <code>tmaptools</code> packages, due to a recent bug, you need to install the developer versions from GitHub using:</p></li>
+</ul>
+<p><code>remotes::install_github(&quot;mtennekes/tmap&quot;)</code></p>
+<p><code>remotes::install_github(&quot;mtennekes/tmaptools&quot;)</code></p>
+<p><code>remotes::install_github(&quot;rstudio/bootstraplib&quot;)</code></p>
+</div>
+<div id="data-source-and-structure" class="section level2">
+<h2>Data Source and Structure</h2>
+<div id="twitter-data" class="section level4">
+<h4>Twitter data</h4>
+<p>We used Twitter’s API to access data of tweets regarding the BLM movement and police violence. We queried tweets that for four primary hashtags of interest: #BLM, #BlackLivesMatter, #defundthepolice, and #policebrutality. Our data set ended up being a total of 54,000 tweets, collected between 2020-07-14 16:22:35 UTC and 2020-07-14 22:48:09 UTC.</p>
+<p>From the original data pull, we pared down the 90+ metadata variables to an initial 33, and split the data into separate .RDS files for easy ingestion to Shiny as well as avoiding GitHub data transfer and storage issues. We wrangled the data, creating summary variables such as the number of hashtags used in the tweet text, as well as which of our primary hashtags was used (either one or multiple).</p>
+</div>
+<div id="sentinet5-sentiment-dictionary-httpssentic.net" class="section level4">
+<h4>SentiNet5 Sentiment Dictionary (<a href="https://sentic.net/" class="uri">https://sentic.net/</a>)</h4>
+<p>SenticNet5 is a data set that provides 100,000 common words and attaching them a vectorized sentiment (direction and magnitude). We used this data set to attach sentiment to tweets and assigned an average “intensity” score, providing a basic scale for a tweet’s content being more positive or negative. The process involved the removal of stopwords from the <code>tidytext</code> package, as well as removing our primary hashtags and hyperlink artifacts after tokenization of the tweets.</p>
+</div>
+<div id="slangsd-sentiment-dictionary-httpliangwu.meslangsd" class="section level4">
+<h4>SlangSD Sentiment Dictionary (<a href="http://liangwu.me/slangsd/" class="uri">http://liangwu.me/slangsd/</a>)</h4>
+<p>SlangSD is a data set that attaches sentiment to informal language, containing about 78,000 entries. As we are analyzing data from Twitter, a social media platform where users often use informal or slang language, this data set provided another source of sentiment analysis. We processed the initial cleaned tweets separately for each sentiment dictionary, following the same procedure both times.</p>
+</div>
+<div id="location-data" class="section level4">
+<h4>Location data:</h4>
+<p>From our cleaned tweets data, we parsed location data in multiple ways. Some tweets already had lat/lon data connected to them, but they were the vast minority. However, one of the metadata variables (<code>Location</code>) provided strings that users would input for their location. We could then extract any city, state, or country name, and assign lat/lon coordinates to the tweets. In total, we were able to parse locations for just over 3,000 tweets. Our maps were produced with both <code>tmap</code> and <code>leaflet</code> packages, allowing the user to interact with different variables.</p>
+<p><strong>Note:</strong> Due to the limited nature of our data set, further constrained by the limited parsed location data, the maps are meant to show a rough sketch of the content. One illustration of our limitation is presented on our EDA tab. The bar plot shows a much higher count of tweets attributed to California than those in Washington, D.C. This is <strong>not</strong> to say that more Twitter participation is happening in one place or another. The time frame from which we pulled our data would heavily favor countries in the western hemisphere, and how we parsed location could have affected how many tweets we assigned to each place. Example: someone in Washington, D.C. may be used to filling out their “Location” in specific terms (i.e. Dupont Circle or Lincoln Memorial); conversely, someone in California’s Bay Area may be more inclined to list their location by city (i.e. Oakland vs San Francisco). Our method for parsing location doesn’t get more specific than city-level, hence the possibility of not catching locations based off of places of interest.</p>
+</div>
+</div>
+<div id="eda-inputs-controls-and-outputs" class="section level2">
+<h2>EDA Inputs, Controls, and Outputs</h2>
+<p>Our EDA tab is designed to be a top-down snapshot of our whole data set. We provide the chance for the user to investigate the initial Tweets dataset we gathered. We start by examining the tweets and counting the number of retweets plotting the results as a density function. We have two sliders attached for this plot. One is a range slider to help us group by the number of retweets and observe the number of tweets we have in this group. Example: we might want to focus on a specific group after wards in our research. The second slider is filtering the number of followers each tweet’s user has. Example: We might be interested in users that have more than 10,000 followers.</p>
+<p>Afterwards we have two static bar plots. Those are showing the distribution of the tweets based on chosen states and significant countries.</p>
+<p>The bottom part is showing an interactive bar-plot that gives us a better sense of other hashtags, words, user mentions, and Emojis. For example, we see hashtags that we didn’t think on researching like #georgesoros or #portlandriots.</p>
+<p>This section is providing us with more directions for research and ideas that we might didn’t think of.</p>
+</div>
+<div id="mapping-inputs-controls-and-ouputs" class="section level2">
+<h2>Mapping Inputs, Controls, and Ouputs</h2>
+<p>The mapping tab showcases geographic trends of our Twitter data. In the top half of the page, the user can tab between U.S. state trends and worldwide country trends illustrated in choropleth maps. The polygons can be colored by the variable of interest to the user; options include total number of tweets, average number of hashtags per tweet, and average sentiment score per tweet using either the SenticNet dictionary or SlangSD dictionary. The user may also choose between three base maps: OpenStreetMap (the default), ESRI World Gray Canvas, or ESRI World Topo Map. The bottom half of the page displays a leaflet map of individual tweets which does not have corresponding user inputs. To interact with this output, the user can zoom in or out and pan over the full-world map to investigate individual tweets; while not all tweets in our dataset could be represented spatially, we took advantage of geotagged tweets as well as other location data in tweet attributes to include as many tweets as possible.</p>
+</div>
+<div id="statistical-analysis-inputs-controls-and-outputs" class="section level2">
+<h2>Statistical Analysis Inputs, Controls, and Outputs</h2>
+<p>The analysis tab allows a user to explore our Twitter data through statistical summaries in the form of boxplots and a barchart and an analysis of variance table. The radio button selection titled “Allow tweets that include more than one hashtag?”, which interacts with all of the output on the analysis page, allows a user to select “Inclusive”, meaning a selected hashtag may capture tweets in which one or more of the other three hashtags are used, or “Exclusive”, meaning the output of a selected hashtag will be restricted to tweets in which only the selected hashtag is present. The dropdown menu allows the user to select either the SenticNet or the SlangSD sentiment dictionary, again interacting with all analysis output. The user may then select one or more hashtags of interest for the first boxplot. The option, “All blm-related hashtags”, indicates tweets that include all four hashtags.</p>
+<p>The second row on the analysis tab includes the results of a multiple pairwise comparison test in a table format. Our preliminary analysis showed that all anova tests, including combinations of “Inclusive” or “Exclusive” and SenticNet or SlangSD, were significant. We then did a follow-up test, using Tukey’s honestly significant difference test, to compare the means of all possible pairs. When a user selects “Inclusive”, the weighting of the tweets with more than one hashtag changes so as not to give more weight to any particular tweet. These results are displayed in the table. The barplot, reactive to the user’s selection of “Inclusive” or “Exclusive”, shows the number of tweets by hashtag.</p>
+<p>The final row of the analysis tab allows a user to look at different combinations of hashtags and their statistical summaries in the form of a boxplot. A user must first select a primary hashtag to limit the number of boxplots shown and then can select various combinations with other hashtags.</p>
+</div>
+<div id="future-directions" class="section level2">
+<h2>Future directions</h2>
+<p>We can make the tidying as part of the app and provide the user the option to stream data into the app without a static data set. This would allow users to react to and analyze current events as they are happening.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<p>Carney, N. (2016). All Lives Matter, but so Does Race: Black Lives Matter and the Evolving Role of Social Media. Humanity &amp; Society, 40(2), 180–199. <a href="https://doi.org/10.1177/0160597616643868" class="uri">https://doi.org/10.1177/0160597616643868</a></p>
+<p>Jelani Ince, Fabio Rojas &amp; Clayton A. Davis (2017) The social media response to Black Lives Matter: how Twitter users interact with Black Lives Matter through hashtag use, Ethnic and Racial Studies, 40:11, 1814-1830, DOI: 10.1080/01419870.2017.1334931</p>
+<p>Corwin, R. M. (2016). Whose lives matter? An examination of attitudes expressed on Twitter regarding# blacklivesmatter and related hashtags (Doctoral dissertation, Regent University).</p>
+<p>Sharma, S. (2013). Black Twitter? Racial hashtags, networks and contagion. New Formations, 78(78), 46-64.</p>
+<p>Buchanan, L., Bui, Q., &amp; Patel, J. (2020, July 03). Black Lives Matter May Be the Largest Movement in U.S. History. Retrieved July 11, 2020, from <a href="https://www.nytimes.com/interactive/2020/07/03/us/george-floyd-protests-crowd-size.html" class="uri">https://www.nytimes.com/interactive/2020/07/03/us/george-floyd-protests-crowd-size.html</a></p>
+<p>Cambria, Erik, et al. “SenticNet 5: Discovering conceptual primitives for sentiment analysis by means of context embeddings.” Thirty-Second AAAI Conference on Artificial Intelligence. 2018.</p>
+<p>Wu, Liang, Fred Morstatter, and Huan Liu. “Slangsd: Building and using a sentiment dictionary of slang words for short-text sentiment classification.” arXiv preprint arXiv:1608.05129 (2016).</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
